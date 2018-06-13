@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>tensorflow.js</title>
+    <!-- Loading in TensorFlow.js version 0.11.2 -->
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@0.11.2"> </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.2/Chart.bundle.min.js"> </script>
+  </head>
+  <body>
+    <div>
+        <h1 style="color:blue;border-bottom:3px solid blue;width:600px;">tensorflow.js example</h1>
+    </div>
+    <div style="width:600px;">
+    <p> 
+        Creates a model in tensorflow.js and trains it based on user input regarding mean squared error and sgd optimizer. 
+        The resulting prediction/regression as well as the input data is then plotted via Chart.js.
+    </p>
+    </div>
+    
+    <div style="text-align:left;">
+    x: <input type="text" id="x" />
+    y: <input type="text" id="y" />
+    epochs: <input type="text" id="epoch" style="width:40px;"/>
+    <input type="button" id="append" value="append data">
+    </div>
+    
+
+    <div id="myChartdiv" class="chart-container" style="padding:50px;"> 
+        <canvas id="myChart" width="600" height="300"></canvas>
+    </div>
+
+    <script>
+        var myChart1=document.getElementById('myChart');// style="display: none;" // <style media="screen" type="text/css">.chart-container {width: 600px;height:300px}</style>
+    
+        var ctx=myChart1.getContext("2d");
+        ctx.font="20px Georgia";
+        textWidth = ctx.measureText("Hello Canvas!").width;
+        ctx.fillText("Hello Canvas!",(600/2) - (textWidth / 2),300/2);
+        ctx.textAlign = 'center'; 
+
+        var xs = [] // starts empty, to be populated with .push
+        var ys = [] // starts empty, to be populated with .push
+        var bestfit = [] // to be populated by tf.js
+        document.getElementById('epoch').value = 150;
+        document.getElementById('x').value = 0; // create a starting value for our x
+
+        //Create the model
+        const model = tf.sequential();
+        model.add(tf.layers.dense({units: 128, inputShape: [1]})); // layer 1
+        model.add(tf.layers.leakyReLU({units: 128, inputShape: [128]})); // layer 2
+        model.add(tf.layers.dense({units: 1, inputShape: [128]})); // output layer
+        model.compile({loss: 'meanSquaredError', optimizer: 'sgd'}); // compile with params
+
+
+
+        // the append id is given to our submit button, this will be called
+        document.getElementById("append").onclick = function(){
+
+            var x = document.getElementById("x").value; // grab the current value for x
+            var y = document.getElementById("y").value; // grab the current value for y
+            var epoch = document.getElementById("epoch").value; // grab the value for number of epochs
+
+            xs.push(x) // append that value to the xs
+            ys.push(y) // append that value to the ys
+            document.getElementById('x').value = parseInt(x)+1; // add 1 to the x automatically
+
+            // Train the model...then:
+            model.fit(tf.tensor(xs), tf.tensor(ys), {epochs:epoch}).then(() => {
+                bestfit = model.predict(tf.tensor(xs, [xs.length, 1])).dataSync(); // create best-fit line from xs data
+                //var ctx = document.getElementById("myChart").getContext('2d'); // begin chart
+
+
+                // Chart data and settings:
+                var myChart = new Chart(ctx, {
+                    type: 'line',
+                    options: {scales:{yAxes: [{ticks: {beginAtZero: true}}]}, responsive: false, maintainAspectRatio: false},
+                    data: {
+                        labels: xs,
+                        datasets: [
+                        {
+                            label: 'Original Data',
+                            data: ys,
+                            borderWidth: 1,
+                            borderColor: '#5199a8',
+                            backgroundColor: 'rgba(1,1,1,0)'
+                        },{
+                            label: 'Best Fit line',
+                            data: bestfit,
+                            borderWidth: 1,
+                            borderColor: '#ba3951',
+                            backgroundColor: 'rgba(1,1,1,0)'
+                        },]
+                    },
+                });
+              });
+
+        }
+    </script>
+  </body>
+</html>
