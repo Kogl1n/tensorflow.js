@@ -3,7 +3,7 @@
   <head>
     <title>tensorflow.js</title>
     <!-- Loading in TensorFlow.js version 0.11.2 -->
-    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@0.11.2"> </script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@0.11.6"> </script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.2/Chart.bundle.min.js"> </script>
   </head>
   <body>
@@ -18,10 +18,10 @@
     </div>
     
     <div style="text-align:left;">
-    x: <input type="text" id="x" />
-    y: <input type="text" id="y" />
-    epochs: <input type="text" id="epoch" style="width:40px;"/>
+    x: <input type="number" id="x" />
+    y: <input type="number" id="y" />
     <input type="button" id="append" value="append data">
+    epochs: <input type="text" id="epoch" style="width:40px;"/>
     </div>
     
 
@@ -49,7 +49,8 @@
         model.add(tf.layers.dense({units: 128, inputShape: [1]})); // layer 1
         model.add(tf.layers.leakyReLU({units: 128, inputShape: [128]})); // layer 2
         model.add(tf.layers.dense({units: 1, inputShape: [128]})); // output layer
-        model.compile({loss: 'meanSquaredError', optimizer: 'sgd'}); // compile with params
+        //const optimizer = tf.train.sgd(0.01) // 0.0001 to 1
+        model.compile({loss: 'meanSquaredError', optimizer: "sgd"}); // compile with params
 
 
 
@@ -65,7 +66,7 @@
             document.getElementById('x').value = parseInt(x)+1; // add 1 to the x automatically
 
             // Train the model...then:
-            model.fit(tf.tensor(xs), tf.tensor(ys), {epochs:epoch}).then(() => {
+            model.fit(tf.tensor(xs), tf.tensor(ys), {epochs:epoch, shuffle:true}).then(() => {
                 bestfit = model.predict(tf.tensor(xs, [xs.length, 1])).dataSync(); // create best-fit line from xs data
                 //var ctx = document.getElementById("myChart").getContext('2d'); // begin chart
 
